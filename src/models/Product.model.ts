@@ -20,6 +20,9 @@ export interface IProduct extends Document {
   discountPrice?: number;
   costPrice?: number;
   stock: number;
+  lowStockThreshold?: number;
+  brand?: string;
+  subCategory?: string;
   variants: IProductVariant[];
   images: string[];
   category: Types.ObjectId;
@@ -94,6 +97,21 @@ const ProductSchema = new Schema<IProduct>(
       required: [true, 'Stock is required'],
       default: 0,
       min: [0, 'Stock cannot be negative'],
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 5,
+      min: 0,
+    },
+    brand: {
+      type: String,
+      trim: true,
+      default: 'NOVA Fashion',
+    },
+    subCategory: {
+      type: String,
+      trim: true,
+      default: '',
     },
     variants: [ProductVariantSchema],
     images: {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { upload } from '../../middlewares/upload.middleware.js';
 import {
   getAdminCategories,
   createCategory,
@@ -9,6 +10,7 @@ import {
 export const adminCategoryRouter = Router();
 
 adminCategoryRouter.get('/categories', getAdminCategories);
-adminCategoryRouter.post('/categories', createCategory);
-adminCategoryRouter.patch('/categories/:id', updateCategory);
+adminCategoryRouter.post('/categories', upload.any(), createCategory);
+adminCategoryRouter.patch('/categories/:id', upload.any(), updateCategory);
+adminCategoryRouter.put('/categories/:id', upload.any(), updateCategory);
 adminCategoryRouter.delete('/categories/:id', deleteCategory);

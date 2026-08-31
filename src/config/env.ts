@@ -8,9 +8,9 @@ export const ENV = {
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/nova_fashion',
   JWT_SECRET: process.env.JWT_SECRET || 'supersecretjwtkey_novafashion_secure_2026',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
-  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173',
+  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173,http://localhost:5175',
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
-  DASHBOARD_URL: process.env.DASHBOARD_URL || 'http://localhost:5173',
+  DASHBOARD_URL: process.env.DASHBOARD_URL || 'http://localhost:5175',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
 
   // bKash credentials

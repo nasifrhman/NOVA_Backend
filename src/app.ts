@@ -1,3 +1,4 @@
+import path from 'node:path';
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -11,15 +12,38 @@ import { errorMiddleware } from './middlewares/error.middleware.js';
 export const createApp = (): Application => {
   const app = express();
 
-  // 1. Security HTTP Headers
-  app.use(helmet());
+  // 1. Security HTTP Headers (Allow cross-origin media for images/videos)
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    })
+  );
 
-  // 2. CORS configuration (Storefront: 3000, Dashboard: 5173)
-  const allowedOrigins = [
+  // 2. Serve Static Uploaded Files (Images, Videos, Documents)
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+  // 2. CORS configuration (Storefront: 3000, Dashboard: 5173/5175, + env origins)
+  const defaultOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
-    ...ENV.CORS_ORIGIN.split(',').map((o) => o.trim()),
+    'http://localhost:5175',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5175',
   ];
+
+  const envOrigins = ENV.CORS_ORIGIN
+    ? ENV.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+    : [];
+
+  const allowedOrigins = Array.from(
+    new Set([
+      ...defaultOrigins,
+      ...envOrigins,
+      ENV.FRONTEND_URL,
+      ENV.DASHBOARD_URL,
+    ].filter(Boolean))
+  );
 
   app.use(
     cors({
@@ -43,9 +67,9 @@ export const createApp = (): Application => {
     })
   );
 
-  // 3. Body parsers
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // 3. Body parsers (50MB limit to handle high-resolution image uploads & base64)
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   // 4. Request logging
   app.use(morgan(ENV.IS_PRODUCTION ? 'combined' : 'dev'));

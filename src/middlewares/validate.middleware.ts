@@ -27,7 +27,10 @@ export const validateRequest = (schemas: RequestValidationSchema) => {
           field: err.path.join('.'),
           message: err.message,
         }));
-        next(new BadRequestError('Validation failed', formattedErrors));
+        const summaryMessage = formattedErrors
+          .map((e) => (e.field ? `${e.field}: ${e.message}` : e.message))
+          .join('; ');
+        next(new BadRequestError(`Validation error: ${summaryMessage}`, formattedErrors));
       } else {
         next(error);
       }

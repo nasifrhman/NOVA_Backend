@@ -1,5 +1,24 @@
 import { Schema, model, Document, Model } from 'mongoose';
 
+export interface IBanner {
+  _id?: any;
+  title?: string;
+  subtitle?: string;
+  type?: string;
+  image: string;
+  desktopImage?: string;
+  mobileImage?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  link?: string;
+  status?: string;
+  isActive?: boolean;
+  order?: number;
+  sortOrder?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface ISetting extends Document {
   storeName: string;
   tagline?: string;
@@ -29,13 +48,7 @@ export interface ISetting extends Document {
     youtube?: string;
   };
   notice?: string;
-  banners?: Array<{
-    title?: string;
-    subtitle?: string;
-    link?: string;
-    image: string;
-    order: number;
-  }>;
+  banners?: IBanner[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -106,16 +119,25 @@ const SettingSchema = new Schema<ISetting>(
     },
     banners: [
       {
-        title: { type: String },
-        subtitle: { type: String },
-        link: { type: String },
-        image: { type: String, required: true },
+        title: { type: String, default: '' },
+        subtitle: { type: String, default: '' },
+        type: { type: String, default: 'Hero' },
+        image: { type: String, default: '' },
+        desktopImage: { type: String, default: '' },
+        mobileImage: { type: String, default: '' },
+        buttonText: { type: String, default: '' },
+        buttonUrl: { type: String, default: '' },
+        link: { type: String, default: '' },
+        status: { type: String, default: 'Active' },
+        isActive: { type: Boolean, default: true },
         order: { type: Number, default: 0 },
+        sortOrder: { type: Number, default: 0 },
       },
     ],
   },
   {
     timestamps: true,
+    strict: false,
   }
 );
 

@@ -1,3 +1,4 @@
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 import { ENV } from '../config/env.js';
 import { User } from '../models/User.model.js';
@@ -6,6 +7,13 @@ import { Product } from '../models/Product.model.js';
 import { Coupon } from '../models/Coupon.model.js';
 import { Setting } from '../models/Setting.model.js';
 import { Review } from '../models/Review.model.js';
+
+// Resolve SRV DNS issues in Node.js on Windows / local ISP DNS
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore in environments where setting DNS servers is restricted
+}
 
 const seedDatabase = async (): Promise<void> => {
   try {
@@ -28,7 +36,7 @@ const seedDatabase = async (): Promise<void> => {
     console.log('👤 Seeding default admin user...');
     const adminUser = await User.create({
       name: 'NOVA Admin',
-      email: 'admin@novafashion.com',
+      email: 'admin@novafashion.com.bd',
       password: 'admin123',
       role: 'superadmin',
       phone: '+8801700000000',
@@ -285,10 +293,24 @@ const seedDatabase = async (): Promise<void> => {
       banners: [
         {
           title: 'Spring / Summer 2026 Collection',
-          subtitle: 'Up to 30% off on all premium essentials',
+          subtitle: 'Up to 30% off on all women\'s premium essentials',
           image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80',
           link: '/category/women',
           order: 1,
+        },
+        {
+          title: 'Men\'s Urban Streetwear & Formals',
+          subtitle: 'Elevate your wardrobe with Egyptian cotton shirts & denim',
+          image: 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=1600&auto=format&fit=crop&q=80',
+          link: '/category/men',
+          order: 2,
+        },
+        {
+          title: 'Exclusive Footwear & Leather Goods',
+          subtitle: 'Crafted with premium materials for unmatched durability',
+          image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1600&auto=format&fit=crop&q=80',
+          link: '/category/shoes',
+          order: 3,
         },
       ],
     });

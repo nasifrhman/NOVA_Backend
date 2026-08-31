@@ -1,16 +1,26 @@
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 import { ENV } from './env.js';
+
+// Resolve SRV DNS issues in Node.js on Windows / local ISP DNS
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore in environments where setting DNS servers is restricted
+}
 
 export const connectDB = async (): Promise<void> => {
   try {
     mongoose.set('strictQuery', true);
     const conn = await mongoose.connect(ENV.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000, // 5s timeout instead of 30s
+      serverSelectionTimeoutMS: 8000,
     });
     console.log(`📦 MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
   } catch (error: any) {
     console.warn(`⚠️  MongoDB Connection Warning: ${error.message || error}`);
-    console.warn('   The server is running, but database operations require an active MongoDB instance.');
+    console.warn('   Please check your MONGODB_URI in .env:');
+    console.warn('   • If using MongoDB Atlas: Set MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/nova_fashion');
+    console.warn('   • If using Local MongoDB: Ensure MongoDB Service is running on port 27017');
     if (ENV.IS_PRODUCTION) {
       process.exit(1);
     }

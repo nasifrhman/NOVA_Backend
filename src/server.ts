@@ -8,11 +8,13 @@ const startServer = async (): Promise<void> => {
 
   const server = app.listen(ENV.PORT, () => {
     console.log(`=============================================`);
-    console.log(`👗 NOVA Fashion Server running on port ${ENV.PORT}`);
-    console.log(`🌍 Environment: ${ENV.NODE_ENV}`);
-    console.log(`🔗 Healthcheck: http://localhost:${ENV.PORT}/api/v1/health`);
-    console.log(`🛍️ Storefront:  ${ENV.FRONTEND_URL}`);
-    console.log(`📊 Dashboard:   ${ENV.DASHBOARD_URL}`);
+    console.log(`👗 NOVA Fashion Backend API Server`);
+    console.log(`🚀 Port:         ${ENV.PORT}`);
+    console.log(`🌍 Environment:  ${ENV.NODE_ENV}`);
+    console.log(`🔗 API Base:     http://localhost:${ENV.PORT}/api/v1`);
+    console.log(`🩺 Healthcheck:  http://localhost:${ENV.PORT}/api/v1/health`);
+    console.log(`🌐 Allowed CORS: Storefront (${ENV.FRONTEND_URL})`);
+    console.log(`                 Dashboard (${ENV.DASHBOARD_URL})`);
     console.log(`=============================================`);
   });
 
@@ -44,6 +46,14 @@ const startServer = async (): Promise<void> => {
   process.on('SIGINT', () => handleShutdown('SIGINT'));
   process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 };
+
+process.on('unhandledRejection', (reason: any) => {
+  console.error('\n💥 [UNHANDLED PROMISE REJECTION]:', reason);
+});
+
+process.on('uncaughtException', (err: Error) => {
+  console.error('\n💥 [UNCAUGHT EXCEPTION]:', err);
+});
 
 startServer().catch((err) => {
   console.error('Failed to start server:', err);

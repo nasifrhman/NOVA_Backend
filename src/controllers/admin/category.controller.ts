@@ -3,6 +3,10 @@ import { Category } from '../../models/Category.model.js';
 import { Product } from '../../models/Product.model.js';
 import { sendResponse } from '../../utils/apiResponse.js';
 import { BadRequestError, NotFoundError } from '../../utils/errors.js';
+import {
+  formatUploadedFile,
+  processImageOrFile,
+} from '../../middlewares/upload.middleware.js';
 
 export const getAdminCategories = async (
   _req: Request,
@@ -38,7 +42,7 @@ export const createCategory = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, slug, description, image, isActive, order } = req.body;
+    const { name, slug, description, image, isActive, status, order } = req.body;
 
     if (!name) {
       throw new BadRequestError('Category name is required');
@@ -51,12 +55,26 @@ export const createCategory = async (
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 
+    const resolvedIsActive =
+      isActive !== undefined
+        ? Boolean(isActive)
+        : status !== undefined
+        ? String(status).toLowerCase() === 'active'
+        : true;
+
+    let finalImage = image ? processImageOrFile(req, image, 'category') : '';
+    if (req.file) {
+      finalImage = formatUploadedFile(req, req.file).url;
+    } else if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      finalImage = formatUploadedFile(req, req.files[0]).url;
+    }
+
     const category = await Category.create({
       name,
       slug: generatedSlug,
       description,
-      image,
-      isActive: isActive !== undefined ? Boolean(isActive) : true,
+      image: finalImage,
+      isActive: resolvedIsActive,
       order: Number(order) || 0,
     });
 
@@ -78,8 +96,21 @@ export const updateCategory = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const updateData: Record<string, any> = { ...req.body };
 
-    const category = await Category.findByIdAndUpdate(id, req.body, {
+    if (updateData.status !== undefined && updateData.isActive === undefined) {
+      updateData.isActive = String(updateData.status).toLowerCase() === 'active';
+    }
+
+    if (req.file) {
+      updateData.image = formatUploadedFile(req, req.file).url;
+    } else if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      updateData.image = formatUploadedFile(req, req.files[0]).url;
+    } else if (updateData.image !== undefined) {
+      updateData.image = processImageOrFile(req, updateData.image, 'category');
+    }
+
+    const category = await Category.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
