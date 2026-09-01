@@ -19,10 +19,15 @@ export const getReviews = async (
     const filter: Record<string, unknown> = { isApproved: true };
 
     if (productId) {
-      if (!Types.ObjectId.isValid(productId as string)) {
-        throw new BadRequestError('Invalid product ID');
+      const isValidObjectId = typeof productId === 'string' && /^[0-9a-fA-F]{24}$/.test(productId);
+      if (isValidObjectId) {
+        filter.product = productId;
+      } else {
+        const product = await Product.findOne({
+          $or: [{ slug: productId }, { sku: productId }],
+        });
+        filter.product = product ? product._id : null;
       }
-      filter.product = productId;
     }
 
     const [reviews, total] = await Promise.all([
@@ -58,13 +63,22 @@ export const createReview = async (
   try {
     const { productId, customerName, customerEmail, rating, title, comment } = req.body;
 
-    if (!productId || !Types.ObjectId.isValid(productId)) {
-      throw new BadRequestError('Valid product ID is required');
+    if (!productId || typeof productId !== 'string') {
+      throw new BadRequestError('Valid product identifier is required');
     }
 
-    const product = await Product.findById(productId);
-    if (!product || !product.isActive) {
-      throw new NotFoundError('Product not found');
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(productId);
+    const product = await Product.findOne({
+      $or: [
+        ...(isValidObjectId ? [{ _id: productId }] : []),
+        { slug: productId },
+        { sku: productId },
+      ],
+      isActive: true,
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found or unavailable');
     }
 
     const numericRating = Number(rating);

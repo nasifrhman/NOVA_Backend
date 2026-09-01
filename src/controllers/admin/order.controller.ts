@@ -72,7 +72,14 @@ export const getAdminOrderById = async (
   try {
     const { id } = req.params;
 
-    const order = await Order.findById(id).populate('items.product', 'title slug images');
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const order = await Order.findOne({
+      $or: [
+        ...(isValidObjectId ? [{ _id: id }] : []),
+        { orderNumber: id },
+      ],
+    }).populate('items.product', 'title slug images');
+
     if (!order) {
       throw new NotFoundError(`Order not found with ID: ${id}`);
     }
@@ -96,7 +103,13 @@ export const updateOrderStatus = async (
     const { id } = req.params;
     const { orderStatus, paymentStatus, adminNotes, statusNote } = req.body;
 
-    const order = await Order.findById(id);
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const order = await Order.findOne({
+      $or: [
+        ...(isValidObjectId ? [{ _id: id }] : []),
+        { orderNumber: id },
+      ],
+    });
     if (!order) {
       throw new NotFoundError(`Order not found with ID: ${id}`);
     }

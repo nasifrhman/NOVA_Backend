@@ -59,7 +59,13 @@ export class PaymentService {
     let order: IOrder | null = null;
 
     if (input.orderId) {
-      order = await Order.findById(input.orderId);
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(input.orderId);
+      order = await Order.findOne({
+        $or: [
+          ...(isValidObjectId ? [{ _id: input.orderId }] : []),
+          { orderNumber: input.orderId },
+        ],
+      });
     } else if (input.orderNumber) {
       order = await Order.findOne({ orderNumber: input.orderNumber });
     }
