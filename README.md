@@ -82,14 +82,30 @@ cp .env.example .env
 
 Ensure your MongoDB instance is running, or set `MONGODB_URI` to your MongoDB Atlas connection string.
 
-### 3. Seed Database (Optional / Initial Setup)
-Populates categories, demo products with variants & images, active coupons, store settings, and default superadmin:
-```bash
-npm run seed
-```
-> **Default Admin Account**:
-> - Email: `admin@novafashion.com`
-> - Password: `admin123`
+### 3. Database Management Commands
+
+- **Clean Database** (Wipes all orders, reviews, coupons, products, categories and keeps fresh default admin & settings):
+  ```bash
+  npm run db:clean
+  # or
+  npm run clean
+  ```
+
+- **Seed Demo Data** (Populates categories, 12+ products with variants & images, active coupons, store settings, customer reviews, sample orders):
+  ```bash
+  npm run db:seed
+  # or
+  npm run seed
+  ```
+
+- **Reset Database** (Cleans everything and re-seeds in one step):
+  ```bash
+  npm run db:reset
+  ```
+
+> **Default Seeded Credentials**:
+> - **Superadmin**: `admin@novafashion.com.bd` / `admin123`
+> - **Customer**: `tanvir@novafashion.com.bd` / `customer123`
 
 ### 4. Run in Development Mode
 ```bash

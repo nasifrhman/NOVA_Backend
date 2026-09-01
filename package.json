@@ -8,6 +8,10 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "tsx src/seed/seeder.ts",
+    "db:seed": "tsx src/seed/seeder.ts",
+    "clean": "tsx src/seed/clean.ts",
+    "db:clean": "tsx src/seed/clean.ts",
+    "db:reset": "tsx src/seed/seeder.ts",
     "lint": "tsc --noEmit"
   },
   "keywords": [

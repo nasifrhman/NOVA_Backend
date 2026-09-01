@@ -7,6 +7,8 @@ import { Product } from '../models/Product.model.js';
 import { Coupon } from '../models/Coupon.model.js';
 import { Setting } from '../models/Setting.model.js';
 import { Review } from '../models/Review.model.js';
+import { Order } from '../models/Order.model.js';
+import { generateOrderNumber } from '../utils/generateOrderNumber.js';
 
 // Resolve SRV DNS issues in Node.js on Windows / local ISP DNS
 try {
@@ -17,6 +19,9 @@ try {
 
 const seedDatabase = async (): Promise<void> => {
   try {
+    console.log('=============================================');
+    console.log('🌱 NOVA Fashion Database Seeder');
+    console.log('=============================================');
     console.log('🔄 Connecting to MongoDB for seeding...');
     await mongoose.connect(ENV.MONGODB_URI);
     console.log(' Connected to MongoDB.');
@@ -30,10 +35,12 @@ const seedDatabase = async (): Promise<void> => {
       Coupon.deleteMany({}),
       Setting.deleteMany({}),
       Review.deleteMany({}),
+      Order.deleteMany({}),
     ]);
+    console.log(' Cleared all existing data.');
 
-    // 2. Seed Admin User
-    console.log('👤 Seeding default admin user...');
+    // 2. Seed Admin User & Test Customer
+    console.log('👤 Seeding users...');
     const adminUser = await User.create({
       name: 'NOVA Admin',
       email: 'admin@novafashion.com.bd',
@@ -43,6 +50,16 @@ const seedDatabase = async (): Promise<void> => {
       isActive: true,
     });
     console.log(` Created Admin: ${adminUser.email} (Password: admin123)`);
+
+    const customerUser = await User.create({
+      name: 'Tanvir Ahmed',
+      email: 'tanvir@novafashion.com.bd',
+      password: 'customer123',
+      role: 'customer',
+      phone: '+8801711223344',
+      isActive: true,
+    });
+    console.log(` Created Customer: ${customerUser.email} (Password: customer123)`);
 
     // 3. Seed Categories
     console.log('📂 Seeding categories...');
@@ -221,14 +238,190 @@ const seedDatabase = async (): Promise<void> => {
         rating: 4.8,
         reviewCount: 16,
       },
+      {
+        title: 'Embroidered Semi-Formal Kurti',
+        slug: 'embroidered-semi-formal-kurti',
+        sku: 'NF-WMN-KRT-06',
+        description: 'Handcrafted zari embroidery on fine viscose silk, mandarin collar with subtle side slits.',
+        shortDescription: 'Handcrafted embroidered viscose silk kurti',
+        price: 2150,
+        discountPrice: 1850,
+        costPrice: 950,
+        stock: 40,
+        category: catMap.get('women'),
+        images: [
+          'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { size: 'M', color: 'Emerald Green', sku: 'NF-WMN-KRT-06-M-GRN', price: 1850, stock: 20 },
+          { size: 'L', color: 'Ruby Red', sku: 'NF-WMN-KRT-06-L-RED', price: 1850, stock: 20 },
+        ],
+        tags: ['kurti', 'traditional', 'women'],
+        isFeatured: true,
+        isBestseller: false,
+        salesCount: 28,
+        rating: 4.6,
+        reviewCount: 7,
+      },
+      {
+        title: 'Kids Dinosaur Graphic Tee',
+        slug: 'kids-dinosaur-graphic-tee',
+        sku: 'NF-KID-TEE-07',
+        description: '100% combed cotton jersey with eco-friendly non-toxic print, tagless comfort neck.',
+        shortDescription: 'Soft 100% cotton crewneck graphic tee for kids',
+        price: 750,
+        discountPrice: 650,
+        costPrice: 300,
+        stock: 60,
+        category: catMap.get('kids'),
+        images: [
+          'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { size: '4-5Y', color: 'Mustard Yellow', sku: 'NF-KID-TEE-07-4Y-YEL', price: 650, stock: 30 },
+          { size: '6-7Y', color: 'Olive Green', sku: 'NF-KID-TEE-07-6Y-GRN', price: 650, stock: 30 },
+        ],
+        tags: ['kids', 't-shirt', 'boys', 'casual'],
+        isFeatured: true,
+        isBestseller: true,
+        salesCount: 39,
+        rating: 4.9,
+        reviewCount: 11,
+      },
+      {
+        title: 'Handmade Leather Formal Loafers',
+        slug: 'handmade-leather-formal-loafers',
+        sku: 'NF-SHS-LFR-08',
+        description: 'Full-grain calfskin leather, leather lining and memory foam footbed for maximum formal comfort.',
+        shortDescription: 'Full-grain calfskin leather loafers',
+        price: 4200,
+        discountPrice: 3800,
+        costPrice: 2100,
+        stock: 20,
+        category: catMap.get('shoes'),
+        images: [
+          'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { size: '41', color: 'Burnished Tan', sku: 'NF-SHS-LFR-08-41-TAN', price: 3800, stock: 10 },
+          { size: '42', color: 'Burnished Tan', sku: 'NF-SHS-LFR-08-42-TAN', price: 3800, stock: 10 },
+        ],
+        tags: ['shoes', 'formal', 'leather', 'men'],
+        isFeatured: true,
+        isBestseller: false,
+        salesCount: 14,
+        rating: 5.0,
+        reviewCount: 6,
+      },
+      {
+        title: 'Premium Linen Panjabi',
+        slug: 'premium-linen-panjabi',
+        sku: 'NF-MEN-PNJ-09',
+        description: 'Crafted from pure European linen with intricate neckline threadwork and engraved metal buttons.',
+        shortDescription: 'Pure European linen festive panjabi for men',
+        price: 3450,
+        discountPrice: 2990,
+        costPrice: 1600,
+        stock: 35,
+        category: catMap.get('men'),
+        images: [
+          'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { size: '40', color: 'Ivory Cream', sku: 'NF-MEN-PNJ-09-40-CRM', price: 2990, stock: 15 },
+          { size: '42', color: 'Navy Blue', sku: 'NF-MEN-PNJ-09-42-NVY', price: 2990, stock: 20 },
+        ],
+        tags: ['panjabi', 'festive', 'traditional', 'men'],
+        isFeatured: true,
+        isBestseller: true,
+        salesCount: 47,
+        rating: 4.8,
+        reviewCount: 15,
+      },
+      {
+        title: 'Polarized Aviator Sunglasses',
+        slug: 'polarized-aviator-sunglasses',
+        sku: 'NF-ACC-SNG-10',
+        description: 'UV400 protection with lightweight metal frame, spring hinges, and anti-glare polarized lenses.',
+        shortDescription: 'UV400 polarized aviator sunglasses',
+        price: 1650,
+        discountPrice: 1390,
+        costPrice: 600,
+        stock: 50,
+        category: catMap.get('accessories'),
+        images: [
+          'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { color: 'Gold / Green Lens', sku: 'NF-ACC-SNG-10-GLD', price: 1390, stock: 25 },
+          { color: 'Matte Black', sku: 'NF-ACC-SNG-10-BLK', price: 1390, stock: 25 },
+        ],
+        tags: ['sunglasses', 'accessories', 'unisex'],
+        isFeatured: false,
+        isBestseller: true,
+        salesCount: 62,
+        rating: 4.7,
+        reviewCount: 19,
+      },
+      {
+        title: 'NOVA Signature Hoodie',
+        slug: 'prod-11',
+        sku: 'PROD-11',
+        description: 'Heavyweight 380 GSM fleece hoodie with ribbed cuffs, kangaroo pocket, and double-lined hood.',
+        shortDescription: 'Heavyweight 380 GSM cotton fleece hoodie',
+        price: 2200,
+        discountPrice: 1850,
+        costPrice: 900,
+        stock: 80,
+        category: catMap.get('men'),
+        images: [
+          'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { size: 'M', color: 'Charcoal Grey', sku: 'PROD-11-M-GRY', price: 1850, stock: 40 },
+          { size: 'L', color: 'Charcoal Grey', sku: 'PROD-11-L-GRY', price: 1850, stock: 40 },
+        ],
+        tags: ['hoodie', 'winter', 'streetwear', 'unisex'],
+        isFeatured: true,
+        isBestseller: true,
+        salesCount: 88,
+        rating: 4.9,
+        reviewCount: 31,
+      },
+      {
+        title: 'Chiffon Layered Party Kurti',
+        slug: 'prod-12',
+        sku: 'PROD-12',
+        description: 'Double-layered chiffon festive kurti with sequin detailing and gold piping.',
+        shortDescription: 'Double-layered chiffon party kurti',
+        price: 2800,
+        discountPrice: 2450,
+        costPrice: 1300,
+        stock: 40,
+        category: catMap.get('women'),
+        images: [
+          'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=700&auto=format&fit=crop&q=80',
+        ],
+        variants: [
+          { size: 'M', color: 'Blush Pink', sku: 'PROD-12-M-PNK', price: 2450, stock: 20 },
+          { size: 'L', color: 'Blush Pink', sku: 'PROD-12-L-PNK', price: 2450, stock: 20 },
+        ],
+        tags: ['kurti', 'party', 'women'],
+        isFeatured: true,
+        isBestseller: false,
+        salesCount: 21,
+        rating: 4.8,
+        reviewCount: 9,
+      },
     ];
 
     const seededProducts = await Product.insertMany(productsData);
+    console.log(` Seeded ${seededProducts.length} products.`);
 
     // 5. Seed Coupons
     console.log('🏷️ Seeding discount coupons...');
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 6);
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
 
     await Coupon.insertMany([
       {
@@ -238,7 +431,7 @@ const seedDatabase = async (): Promise<void> => {
         discountValue: 10,
         minOrderAmount: 1000,
         maxDiscountAmount: 500,
-        expiryDate: nextMonth,
+        expiryDate: nextYear,
         isActive: true,
       },
       {
@@ -248,7 +441,7 @@ const seedDatabase = async (): Promise<void> => {
         discountValue: 20,
         minOrderAmount: 1500,
         maxDiscountAmount: 600,
-        expiryDate: nextMonth,
+        expiryDate: nextYear,
         isActive: true,
       },
       {
@@ -257,10 +450,21 @@ const seedDatabase = async (): Promise<void> => {
         discountType: 'fixed',
         discountValue: 150,
         minOrderAmount: 2000,
-        expiryDate: nextMonth,
+        expiryDate: nextYear,
+        isActive: true,
+      },
+      {
+        code: 'EID30',
+        description: 'Special 30% discount on festive collections',
+        discountType: 'percentage',
+        discountValue: 30,
+        minOrderAmount: 3000,
+        maxDiscountAmount: 1200,
+        expiryDate: nextYear,
         isActive: true,
       },
     ]);
+    console.log(' Seeded 4 coupons.');
 
     // 6. Seed Store Settings
     console.log('⚙️ Seeding store settings...');
@@ -314,34 +518,200 @@ const seedDatabase = async (): Promise<void> => {
         },
       ],
     });
+    console.log(' Seeded store settings.');
 
     // 7. Seed Reviews
-    console.log('💬 Seeding sample customer reviews...');
-    if (seededProducts.length > 0) {
-      await Review.create({
-        product: seededProducts[0]._id,
-        customerName: 'Tanvir Ahmed',
-        customerEmail: 'tanvir@example.com',
-        rating: 5,
-        title: 'Outstanding fabric quality!',
-        comment: 'The Oxford shirt fit perfectly and the cotton fabric feels ultra premium. Highly recommended!',
-        isApproved: true,
-        verifiedPurchase: true,
-      });
-
-      await Review.create({
-        product: seededProducts[1]._id,
-        customerName: 'Samira Khan',
-        customerEmail: 'samira@example.com',
-        rating: 5,
-        title: 'Love the floral print!',
-        comment: 'Beautiful dress, breathable georgette material. Delivered to Uttara within 24 hours!',
-        isApproved: true,
-        verifiedPurchase: true,
-      });
+    console.log('💬 Seeding customer reviews...');
+    if (seededProducts.length >= 2) {
+      await Review.create([
+        {
+          product: seededProducts[0]._id,
+          customerName: 'Tanvir Ahmed',
+          customerEmail: 'tanvir@example.com',
+          rating: 5,
+          title: 'Outstanding fabric quality!',
+          comment: 'The Oxford shirt fit perfectly and the cotton fabric feels ultra premium. Highly recommended!',
+          isApproved: true,
+          verifiedPurchase: true,
+        },
+        {
+          product: seededProducts[1]._id,
+          customerName: 'Samira Khan',
+          customerEmail: 'samira@example.com',
+          rating: 5,
+          title: 'Love the floral print!',
+          comment: 'Beautiful dress, breathable georgette material. Delivered to Uttara within 24 hours!',
+          isApproved: true,
+          verifiedPurchase: true,
+        },
+        {
+          product: seededProducts[2]._id,
+          customerName: 'Mahmudul Hasan',
+          customerEmail: 'mahmud@example.com',
+          rating: 5,
+          title: 'Super comfortable stretch jeans',
+          comment: 'Great fitting and true to size. Will buy again!',
+          isApproved: true,
+          verifiedPurchase: true,
+        },
+      ]);
     }
+    console.log(' Seeded reviews.');
 
-    console.log('✅ Database seeding completed successfully!');
+    // 8. Seed Sample Orders for Analytics & Dashboard
+    console.log('📦 Seeding sample orders for Dashboard & Analytics...');
+    const p0 = seededProducts[0] as any;
+    const p1 = seededProducts[1] as any;
+    const p3 = seededProducts[3] as any;
+    const p4 = seededProducts[4] as any;
+
+    const sampleOrders = [
+      {
+        orderNumber: generateOrderNumber(),
+        customer: {
+          name: 'Nasif Rahman',
+          phone: '01798552909',
+          email: 'mdnasifurahman@gmail.com',
+          address: 'Basundhara R/A, G Block, House #14',
+          district: 'Dhaka',
+          city: 'Dhaka',
+        },
+        items: [
+          {
+            product: p0._id,
+            variantId: p0.variants?.[0]?._id,
+            title: p0.title,
+            sku: p0.variants?.[0]?.sku || p0.sku,
+            size: p0.variants?.[0]?.size,
+            color: p0.variants?.[0]?.color,
+            price: 1550,
+            quantity: 2,
+            subtotal: 3100,
+            image: p0.images[0],
+          },
+          {
+            product: p3._id,
+            variantId: p3.variants?.[0]?._id,
+            title: p3.title,
+            sku: p3.variants?.[0]?.sku || p3.sku,
+            price: 2850,
+            quantity: 1,
+            subtotal: 2850,
+            image: p3.images[0],
+          },
+        ],
+        subtotal: 5950,
+        shippingFee: 0,
+        discount: 500,
+        couponCode: 'NOVA10',
+        total: 5450,
+        paymentMethod: 'bkash',
+        paymentStatus: 'paid',
+        orderStatus: 'delivered',
+        paymentDetails: {
+          transactionId: 'BKASH9A82B71X',
+          senderNumber: '01798552909',
+          provider: 'bkash',
+          paymentDate: new Date(),
+        },
+        statusHistory: [
+          { status: 'pending', changedAt: new Date(Date.now() - 86400000 * 3), note: 'Order placed' },
+          { status: 'confirmed', changedAt: new Date(Date.now() - 86400000 * 2), note: 'Payment verified' },
+          { status: 'shipped', changedAt: new Date(Date.now() - 86400000), note: 'Handed to courier' },
+          { status: 'delivered', changedAt: new Date(), note: 'Delivered to customer' },
+        ],
+      },
+      {
+        orderNumber: generateOrderNumber(),
+        customer: {
+          name: 'Nusrat Jahan',
+          phone: '01819876543',
+          email: 'nusrat@gmail.com',
+          address: 'Road 7, Sector 4, Uttara',
+          district: 'Dhaka',
+          city: 'Dhaka',
+        },
+        items: [
+          {
+            product: p1._id,
+            variantId: p1.variants?.[0]?._id,
+            title: p1.title,
+            sku: p1.variants?.[0]?.sku || p1.sku,
+            size: p1.variants?.[0]?.size,
+            color: p1.variants?.[0]?.color,
+            price: 2290,
+            quantity: 1,
+            subtotal: 2290,
+            image: p1.images[0],
+          },
+        ],
+        subtotal: 2290,
+        shippingFee: 60,
+        discount: 0,
+        total: 2350,
+        paymentMethod: 'cod',
+        paymentStatus: 'cod_pending',
+        orderStatus: 'processing',
+        statusHistory: [
+          { status: 'pending', changedAt: new Date(Date.now() - 3600000 * 5), note: 'Order placed' },
+          { status: 'processing', changedAt: new Date(), note: 'Packaging in progress' },
+        ],
+      },
+      {
+        orderNumber: generateOrderNumber(),
+        customer: {
+          name: 'Arif Chowdhury',
+          phone: '01712349988',
+          email: 'arif.chowdhury@yahoo.com',
+          address: 'GEC Circle, Nasirabad',
+          district: 'Chittagong',
+          city: 'Chittagong',
+        },
+        items: [
+          {
+            product: p4._id,
+            variantId: p4.variants?.[0]?._id,
+            title: p4.title,
+            sku: p4.variants?.[0]?.sku || p4.sku,
+            size: '41',
+            color: 'White/Navy',
+            price: 2990,
+            quantity: 1,
+            subtotal: 2990,
+            image: p4.images[0],
+          },
+        ],
+        subtotal: 2990,
+        shippingFee: 0,
+        discount: 0,
+        total: 2990,
+        paymentMethod: 'nagad',
+        paymentStatus: 'paid',
+        orderStatus: 'confirmed',
+        paymentDetails: {
+          transactionId: 'NGD882319A',
+          senderNumber: '01712349988',
+          provider: 'nagad',
+          paymentDate: new Date(),
+        },
+        statusHistory: [
+          { status: 'pending', changedAt: new Date(), note: 'Order placed' },
+          { status: 'confirmed', changedAt: new Date(), note: 'Payment verified via Nagad' },
+        ],
+      },
+    ];
+
+    await Order.insertMany(sampleOrders);
+    console.log(` Seeded ${sampleOrders.length} sample orders.`);
+
+    console.log('=============================================');
+    console.log(' Database seeding completed successfully!');
+    console.log(' Credentials:');
+    console.log('   👤 Admin:    admin@novafashion.com.bd / admin123');
+    console.log('   🛒 Customer: tanvir@novafashion.com.bd / customer123');
+    console.log('=============================================');
+
+    await mongoose.disconnect();
     process.exit(0);
   } catch (error) {
     console.error('❌ Seeding failed:', error);

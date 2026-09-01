@@ -1,6 +1,7 @@
 import dns from 'node:dns';
 import mongoose from 'mongoose';
 import { ENV } from './env.js';
+import { ensureDefaultAdmin } from '../utils/bootstrapAdmin.js';
 
 // Resolve SRV DNS issues in Node.js on Windows / local ISP DNS
 try {
@@ -16,6 +17,9 @@ export const connectDB = async (): Promise<void> => {
       serverSelectionTimeoutMS: 8000,
     });
     console.log(`📦 MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
+
+    // Mandatory default admin & store configuration bootstrap
+    await ensureDefaultAdmin();
   } catch (error: any) {
     console.warn(`⚠️  MongoDB Connection Warning: ${error.message || error}`);
     console.warn('   Please check your MONGODB_URI in .env:');

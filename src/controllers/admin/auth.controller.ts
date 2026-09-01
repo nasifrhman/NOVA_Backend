@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../../models/User.model.js';
+import { User, IUser } from '../../models/User.model.js';
 import { ENV } from '../../config/env.js';
 import { sendResponse } from '../../utils/apiResponse.js';
 import { BadRequestError, UnauthorizedError } from '../../utils/errors.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
+import { ensureDefaultAdmin } from '../../utils/bootstrapAdmin.js';
 
 export const adminLogin = async (
   req: Request,
@@ -18,8 +19,21 @@ export const adminLogin = async (
       throw new BadRequestError('Email and password are required');
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() })
-      .select('+password +role +isActive');
+    const cleanEmail = email.toLowerCase().trim();
+    const queryEmails: string[] = [cleanEmail];
+    if (cleanEmail === 'admin@novafashion.com') queryEmails.push('admin@novafashion.com.bd');
+    if (cleanEmail === 'admin@novafashion.com.bd') queryEmails.push('admin@novafashion.com');
+
+    let user: any = await User.findOne({ email: { $in: queryEmails } }).select('+password +role +isActive');
+
+    // If no user found, check if database has no admin and bootstrap automatically
+    if (!user) {
+      const adminCount = await User.countDocuments({ role: { $in: ['admin', 'superadmin'] } });
+      if (adminCount === 0) {
+        await ensureDefaultAdmin();
+        user = await User.findOne({ email: { $in: queryEmails } }).select('+password +role +isActive');
+      }
+    }
 
     if (!user) {
       throw new UnauthorizedError('Invalid credentials');
